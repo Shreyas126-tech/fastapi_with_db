@@ -7,7 +7,9 @@ endpoint = "https://models.github.ai/inference"
 model = "gpt-4o-mini"
 from dotenv import load_dotenv
 load_dotenv()
-token = os.environ["GITHUB_TOKEN"]
+token = os.getenv("GITHUB_TOKEN")
+if not token:
+    raise ValueError("GITHUB_TOKEN environment variable is not set. Please check your .env file or environment variables.")
 
 client = ChatCompletionsClient(
     endpoint=endpoint,

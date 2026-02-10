@@ -19,6 +19,13 @@ Ensure your latest changes are pushed to GitHub.
 ## 4. Environment Variables
 If your application uses a `.env` file, you must add these variables in the **Environment** tab on Render.
 
+Required variables:
+- `DATABASE_URL`: Your database connection string.
+- `GITHUB_TOKEN`: Your GitHub personal access token for AI inference.
+- `SENDER_EMAIL`: The email address used to send notifications.
+- `APP_PASSWORD`: The Google App Password for the sender email (if using Gmail).
+- `JWT_SECRET_KEY`: A secret key for signing JWT tokens.
+
 > [!IMPORTANT]
 > Do not upload your `.env` file to GitHub. Instead, manually add the keys and values in the Render dashboard.
 

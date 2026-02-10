@@ -3,8 +3,11 @@ from email.message import EmailMessage
 from dotenv import load_dotenv
 load_dotenv()
 import os
-app_password=os.environ["APP_PASSWORD"]
-sender_email=os.environ["SENDER_EMAIL"]
+app_password = os.getenv("APP_PASSWORD")
+sender_email = os.getenv("SENDER_EMAIL")
+
+if not app_password or not sender_email:
+    raise ValueError("APP_PASSWORD or SENDER_EMAIL environment variable is not set.")
 # Email details
 def send_email(receiver_email: str, subject: str, content: str):
     """
