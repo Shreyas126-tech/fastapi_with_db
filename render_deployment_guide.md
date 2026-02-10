@@ -14,7 +14,7 @@ Ensure your latest changes are pushed to GitHub.
 - **Name:** Choose a name for your service.
 - **Environment:** `Python 3`
 - **Build Command:** `pip install -r requirements.txt`
-- **Start Command:** `gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app`
+- **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
 
 ## 4. Environment Variables
 If your application uses a `.env` file, you must add these variables in the **Environment** tab on Render.

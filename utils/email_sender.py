@@ -1,13 +1,19 @@
 import smtplib
+import os
 from email.message import EmailMessage
 from dotenv import load_dotenv
-load_dotenv()
-import os
+# Get the path to the .env file in the root directory
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+dotenv_path = os.path.join(base_dir, '.env')
+load_dotenv(dotenv_path)
+
 app_password = os.getenv("APP_PASSWORD")
 sender_email = os.getenv("SENDER_EMAIL")
 
-if not app_password or not sender_email:
-    raise ValueError("APP_PASSWORD or SENDER_EMAIL environment variable is not set.")
+if not app_password:
+    raise ValueError(f"APP_PASSWORD environment variable is not set. Checked: {dotenv_path}")
+if not sender_email:
+    raise ValueError(f"SENDER_EMAIL environment variable is not set. Checked: {dotenv_path}")
 # Email details
 def send_email(receiver_email: str, subject: str, content: str):
     """

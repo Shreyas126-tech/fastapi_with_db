@@ -2,14 +2,18 @@ import os
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import SystemMessage, UserMessage
 from azure.core.credentials import AzureKeyCredential
+from dotenv import load_dotenv
 
 endpoint = "https://models.github.ai/inference"
 model = "gpt-4o-mini"
-from dotenv import load_dotenv
-load_dotenv()
+# Get the path to the .env file in the root directory
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+dotenv_path = os.path.join(base_dir, '.env')
+load_dotenv(dotenv_path)
+
 token = os.getenv("GITHUB_TOKEN")
 if not token:
-    raise ValueError("GITHUB_TOKEN environment variable is not set. Please check your .env file or environment variables.")
+    raise ValueError("GITHUB_TOKEN environment variable is not set. Checked: " + dotenv_path)
 
 client = ChatCompletionsClient(
     endpoint=endpoint,
