@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <a href="/" class="logo">⚡ FastAPI App</a>
+            <div class="nav-links">
+                <a href="/signup-page" class="btn btn-outline">Sign Up</a>
+            </div>
+        </nav>
+
+        <div class="auth-card">
+            <h2>Welcome back</h2>
+            <p class="auth-subtitle">Login to your account</p>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" id="loginBtn">Login</button>
+                <div id="errorMsg" class="error-msg"></div>
+                <div id="successMsg" class="success-msg"></div>
+            </form>
+            <p class="auth-footer">Don't have an account? <a href="/signup-page">Sign up</a></p>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:8000';
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
+            const btn = document.getElementById('loginBtn');
+
+            errorMsg.textContent = '';
+            successMsg.textContent = '';
+            btn.disabled = true;
+            btn.textContent = 'Logging in...';
+
+            try {
+                const res = await fetch(`${API}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    // Store tokens in localStorage
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                    localStorage.setItem('token_type', data.token_type);
+                    localStorage.setItem('user_email', email);
+
+                    successMsg.textContent = 'Login successful! Redirecting...';
+                    setTimeout(() => { window.location.href = '/'; }, 1000);
+                } else {
+                    errorMsg.textContent = data.detail || 'Login failed';
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Could not connect to server';
+            }
+            btn.disabled = false;
+            btn.textContent = 'Login';
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- NAV -->
+        <nav class="navbar">
+            <div class="logo">⚡ FastAPI App</div>
+            <div class="nav-links" id="navLinks">
+                <a href="/signup-page" class="btn btn-outline">Sign Up</a>
+                <a href="/login-page" class="btn btn-primary">Login</a>
+            </div>
+            <div class="nav-links" id="navLoggedIn" style="display:none;">
+                <span class="welcome-text" id="welcomeUser"></span>
+                <button class="btn btn-outline" onclick="logout()">Logout</button>
+            </div>
+        </nav>
+
+        <!-- HERO / CHAT SECTION -->
+        <div id="heroSection" class="hero">
+            <h1>Welcome to <span class="gradient-text">FastAPI App</span></h1>
+            <p class="subtitle">Login to access the AI assistant and chat features.</p>
+            <a href="/login-page" class="btn btn-primary btn-lg">Get Started →</a>
+        </div>
+
+        <div id="chatSection" class="chat-section" style="display:none;">
+            <div class="chat-header">
+                <h2>💬 AI Assistant</h2>
+                <div class="system-prompt-toggle">
+                    <label for="systemPrompt">System Prompt:</label>
+                    <input type="text" id="systemPrompt" value="You are a helpful assistant." placeholder="System prompt...">
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">Hello! How can I help you today?</div>
+                </div>
+            </div>
+            <form class="chat-input-area" onsubmit="sendMessage(event)">
+                <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off" required>
+                <button type="submit" class="btn btn-primary" id="sendBtn">Send</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:8000';
+
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            const email = localStorage.getItem('user_email');
+            if (token) {
+                document.getElementById('navLinks').style.display = 'none';
+                document.getElementById('navLoggedIn').style.display = 'flex';
+                document.getElementById('welcomeUser').textContent = email || 'User';
+                document.getElementById('heroSection').style.display = 'none';
+                document.getElementById('chatSection').style.display = 'flex';
+            } else {
+                document.getElementById('navLinks').style.display = 'flex';
+                document.getElementById('navLoggedIn').style.display = 'none';
+                document.getElementById('heroSection').style.display = 'flex';
+                document.getElementById('chatSection').style.display = 'none';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('token_type');
+            localStorage.removeItem('user_email');
+            checkAuth();
+        }
+
+        async function sendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('messageInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            // Add user message
+            appendMessage(msg, 'user');
+            input.value = '';
+            document.getElementById('sendBtn').disabled = true;
+            document.getElementById('sendBtn').textContent = '...';
+
+            try {
+                const systemPrompt = document.getElementById('systemPrompt').value || 'You are a helpful assistant.';
+                const res = await fetch(`${API}/ask`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({ message: msg, system_prompt: systemPrompt })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    appendMessage(data.response, 'ai');
+                    // Store last response in localStorage
+                    localStorage.setItem('last_ai_response', data.response);
+                } else {
+                    appendMessage('Error: ' + (data.detail || 'Something went wrong'), 'ai error');
+                }
+            } catch (err) {
+                appendMessage('Error: Could not connect to server', 'ai error');
+            }
+            document.getElementById('sendBtn').disabled = false;
+            document.getElementById('sendBtn').textContent = 'Send';
+        }
+
+        function appendMessage(text, type) {
+            const container = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = `message ${type}-message`;
+            div.innerHTML = `
+                <div class="message-avatar">${type === 'user' ? '👤' : '🤖'}</div>
+                <div class="message-content">${escapeHtml(text)}</div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

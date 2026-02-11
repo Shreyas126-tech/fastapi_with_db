@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <a href="/" class="logo">⚡ FastAPI App</a>
+            <div class="nav-links">
+                <a href="/login-page" class="btn btn-primary">Login</a>
+            </div>
+        </nav>
+
+        <div class="auth-card">
+            <h2>Create account</h2>
+            <p class="auth-subtitle">Sign up to get started</p>
+            <form id="signupForm" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" placeholder="Your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" id="signupBtn">Sign Up</button>
+                <div id="errorMsg" class="error-msg"></div>
+                <div id="successMsg" class="success-msg"></div>
+            </form>
+            <p class="auth-footer">Already have an account? <a href="/login-page">Login</a></p>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:8000';
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
+            const btn = document.getElementById('signupBtn');
+
+            errorMsg.textContent = '';
+            successMsg.textContent = '';
+            btn.disabled = true;
+            btn.textContent = 'Creating account...';
+
+            try {
+                const res = await fetch(`${API}/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    successMsg.textContent = 'Account created! Redirecting to login...';
+                    setTimeout(() => { window.location.href = '/login-page'; }, 1500);
+                } else {
+                    errorMsg.textContent = data.detail || 'Signup failed';
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Could not connect to server';
+            }
+            btn.disabled = false;
+            btn.textContent = 'Sign Up';
+        }
+    </script>
+</body>
+
+</html>
