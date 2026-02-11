@@ -6,6 +6,7 @@ from repositories.user_repo import UserRepo
 from schemas.user_schema import UserSchema
 from schemas.token_schema import Token, TokenRefresh, LoginRequest
 from utils.jwt_handler import create_tokens, verify_token
+from utils.hashing import Hash
 
 router = APIRouter()
 
@@ -17,7 +18,8 @@ def signup(user: UserSchema, db: Session = Depends(get_db)):
     existing_user = user_repo.get_user_by_email(user.email)
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
-    db_user = User(name=user.name, email=user.email, password=user.password)
+    hashed_password = Hash.bcrypt(user.password)
+    db_user = User(name=user.name, email=user.email, password=hashed_password)
     user_repo.add_user(db_user)
     return {"message": "User signed up successfully"}
 
@@ -28,7 +30,7 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
     user_repo = UserRepo(db)
     user = user_repo.get_user_by_email(credentials.email)
     
-    if not user or user.password != credentials.password:
+    if not user or not Hash.verify(credentials.password, user.password):
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password",
