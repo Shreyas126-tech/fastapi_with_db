@@ -44,10 +44,19 @@
                 <main class="chat-main">
                     <div class="chat-header">
                         <h2>💬 Alex</h2>
-                        <div class="system-prompt-toggle">
-                            <label for="systemPrompt">System Prompt:</label>
-                            <input type="text" id="systemPrompt" value="You are Alex, a helpful AI assistant."
-                                placeholder="System prompt...">
+                        <div class="header-controls">
+                            <div class="image-mode-toggle">
+                                <label class="switch">
+                                    <input type="checkbox" id="imageMode">
+                                    <span class="slider round"></span>
+                                </label>
+                                <span>Image Mode</span>
+                            </div>
+                            <div class="system-prompt-toggle">
+                                <label for="systemPrompt">System Prompt:</label>
+                                <input type="text" id="systemPrompt" value="You are Alex, a helpful AI assistant."
+                                    placeholder="System prompt...">
+                            </div>
                         </div>
                     </div>
                     <div class="chat-messages" id="chatMessages">
@@ -144,22 +153,32 @@
             document.getElementById('sendBtn').textContent = '...';
 
             try {
-                const userName = localStorage.getItem('user_name') || 'User';
-                const baseSystemPrompt = document.getElementById('systemPrompt').value || 'You are Alex, a helpful assistant.';
-                const systemPrompt = `${baseSystemPrompt} The user's name is ${userName}. If they ask "who am i", tell them their name correctly.`;
+                const isImageMode = document.getElementById('imageMode').checked;
+                const endpoint = isImageMode ? `${API}/generate-image` : `${API}/ask`;
 
-                const res = await fetch(`${API}/ask`, {
+                let body = {};
+                if (isImageMode) {
+                    body = { prompt: msg };
+                } else {
+                    const userName = localStorage.getItem('user_name') || 'User';
+                    const baseSystemPrompt = document.getElementById('systemPrompt').value || 'You are Alex, a helpful assistant.';
+                    const systemPrompt = `${baseSystemPrompt} The user's name is ${userName}. If they ask "who am i", tell them their name correctly.`;
+                    body = { message: msg, system_prompt: systemPrompt };
+                }
+
+                const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                     },
-                    body: JSON.stringify({ message: msg, system_prompt: systemPrompt })
+                    body: JSON.stringify(body)
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    appendMessage(data.response, 'ai');
-                    fetchHistory(); // Refresh history after message
+                    const responseText = isImageMode ? data.image_url : data.response;
+                    appendMessage(responseText, 'ai');
+                    fetchHistory();
                 } else if (res.status === 401) {
                     appendMessage('Authentication expired. Logging out...', 'ai error');
                     setTimeout(logout, 2000);
@@ -177,9 +196,17 @@
             const container = document.getElementById('chatMessages');
             const div = document.createElement('div');
             div.className = `message ${type}-message`;
+
+            let contentHtml = '';
+            if (type === 'ai' && text.startsWith('/static/generated_images/')) {
+                contentHtml = `<img src="${text}" class="generated-image" alt="Generated AI Image" onclick="window.open('${text}', '_blank')">`;
+            } else {
+                contentHtml = escapeHtml(text).replace(/\n/g, '<br>');
+            }
+
             div.innerHTML = `
                 <div class="message-avatar">${type === 'user' ? '👤' : '🤖'}</div>
-                <div class="message-content">${escapeHtml(text)}</div>
+                <div class="message-content">${contentHtml}</div>
             `;
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;

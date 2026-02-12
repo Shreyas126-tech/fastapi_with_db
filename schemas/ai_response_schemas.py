@@ -16,3 +16,9 @@ class ChatHistoryResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ImageRequest(BaseModel):
+    prompt: str
+
+class ImageResponse(BaseModel):
+    image_url: str
