@@ -31,11 +31,17 @@ def get_completion(user_message, system_message="You are a helpful assistant."):
     Returns:
         The model's response
     """
-    response = client.complete(
-        messages=[
-            SystemMessage(system_message),
-            UserMessage(user_message),
-        ],
-        model=model
-    )
-    return response.choices[0].message.content
+    try:
+        response = client.complete(
+            messages=[
+                SystemMessage(system_message),
+                UserMessage(user_message),
+            ],
+            model=model
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        error_str = str(e)
+        if "content_filter" in error_str or "ResponsibleAIPolicyViolation" in error_str:
+            return "Error: This message was blocked by the AI's safety filters. Please try a different prompt."
+        raise e
