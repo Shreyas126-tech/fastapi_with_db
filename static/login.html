@@ -62,11 +62,11 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    // Store tokens in localStorage
                     localStorage.setItem('access_token', data.access_token);
                     localStorage.setItem('refresh_token', data.refresh_token);
                     localStorage.setItem('token_type', data.token_type);
                     localStorage.setItem('user_email', email);
+                    localStorage.setItem('user_name', data.name);
 
                     successMsg.textContent = 'Login successful! Redirecting...';
                     setTimeout(() => { window.location.href = '/'; }, 1000);

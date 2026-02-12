@@ -37,7 +37,7 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"}
         )
     
-    return create_tokens(user.id, user.email)
+    return create_tokens(user.id, user.email, user.name)
 
 
 @router.post("/refresh", response_model=Token)
@@ -58,4 +58,4 @@ def refresh_token(token_data: TokenRefresh, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     
-    return create_tokens(user.id, user.email)
+    return create_tokens(user.id, user.email, user.name)

@@ -43,10 +43,10 @@
 
                 <main class="chat-main">
                     <div class="chat-header">
-                        <h2>💬 AI Assistant</h2>
+                        <h2>💬 Alex</h2>
                         <div class="system-prompt-toggle">
                             <label for="systemPrompt">System Prompt:</label>
-                            <input type="text" id="systemPrompt" value="You are a helpful assistant."
+                            <input type="text" id="systemPrompt" value="You are Alex, a helpful AI assistant."
                                 placeholder="System prompt...">
                         </div>
                     </div>
@@ -144,7 +144,10 @@
             document.getElementById('sendBtn').textContent = '...';
 
             try {
-                const systemPrompt = document.getElementById('systemPrompt').value || 'You are a helpful assistant.';
+                const userName = localStorage.getItem('user_name') || 'User';
+                const baseSystemPrompt = document.getElementById('systemPrompt').value || 'You are Alex, a helpful assistant.';
+                const systemPrompt = `${baseSystemPrompt} The user's name is ${userName}. If they ask "who am i", tell them their name correctly.`;
+
                 const res = await fetch(`${API}/ask`, {
                     method: 'POST',
                     headers: {
