@@ -5,6 +5,7 @@ import os
 
 # JWT Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-super-secret-key-change-in-production")
+print(f"DEBUG: JWT SECRET_KEY is: {SECRET_KEY[:5]}...{SECRET_KEY[-5:]}")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
@@ -31,9 +32,17 @@ def verify_token(token: str, token_type: str = "access") -> Optional[dict]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("type") != token_type:
+            print(f"DEBUG: Token type mismatch. Expected: {token_type}, Got: {payload.get('type')}")
             return None
         return payload
-    except JWTError:
+    except jwt.ExpiredSignatureError:
+        print("DEBUG: Token has expired")
+        return None
+    except JWTError as e:
+        print(f"DEBUG: JWT Error: {str(e)}")
+        return None
+    except Exception as e:
+        print(f"DEBUG: Unexpected error during token verification: {str(e)}")
         return None
 
 

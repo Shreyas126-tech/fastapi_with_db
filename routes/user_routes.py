@@ -15,9 +15,14 @@ router = APIRouter()
 def signup(user: UserSchema, db: Session = Depends(get_db)):
     user_repo = UserRepo(db)
     # Convert Pydantic schema to SQLAlchemy model
-    existing_user = user_repo.get_user_by_email(user.email)
-    if existing_user:
-        raise HTTPException(status_code=400, detail="User already exists")
+    existing_user_email = user_repo.get_user_by_email(user.email)
+    if existing_user_email:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    existing_user_name = user_repo.get_user_by_name(user.name)
+    if existing_user_name:
+        raise HTTPException(status_code=400, detail="Username already taken")
+
     hashed_password = Hash.bcrypt(user.password)
     db_user = User(name=user.name, email=user.email, password=hashed_password)
     user_repo.add_user(db_user)
@@ -30,7 +35,12 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
     user_repo = UserRepo(db)
     user = user_repo.get_user_by_email(credentials.email)
     
-    if not user or not Hash.verify(credentials.password, user.password):
+    try:
+        is_verified = Hash.verify(credentials.password, user.password)
+    except ValueError:
+        is_verified = False
+
+    if not user or not is_verified:
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password",

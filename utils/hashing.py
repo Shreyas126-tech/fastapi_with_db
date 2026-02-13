@@ -10,6 +10,13 @@ class Hash:
 
     @staticmethod
     def verify(plain_password: str, hashed_password: str) -> bool:
-        pwd_bytes = plain_password.encode('utf-8')
-        hashed_bytes = hashed_password.encode('utf-8')
-        return bcrypt.checkpw(pwd_bytes, hashed_bytes)
+        try:
+            pwd_bytes = plain_password.encode('utf-8')
+            hashed_bytes = hashed_password.encode('utf-8')
+            return bcrypt.checkpw(pwd_bytes, hashed_bytes)
+        except ValueError as e:
+            print(f"DEBUG: Password verification error (Invalid Salt): {str(e)}")
+            return False
+        except Exception as e:
+            print(f"DEBUG: Unexpected error in password verification: {str(e)}")
+            return False

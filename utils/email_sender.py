@@ -10,31 +10,33 @@ load_dotenv(dotenv_path)
 app_password = os.getenv("APP_PASSWORD")
 sender_email = os.getenv("SENDER_EMAIL")
 
-if not app_password:
-    raise ValueError(f"APP_PASSWORD environment variable is not set. Checked: {dotenv_path}")
-if not sender_email:
-    raise ValueError(f"SENDER_EMAIL environment variable is not set. Checked: {dotenv_path}")
+def check_email_config():
+    if not app_password or not sender_email:
+        print("WARNING: APP_PASSWORD or SENDER_EMAIL environment variable is not set. Email functionality will be disabled.")
+        return False
+    return True
 # Email details
 def send_email(receiver_email: str, subject: str, content: str):
     """
     Send an email to a specified receiver.
-
-    Args:
-        receiver_email (str): The email address of the recipient.
-        subject (str): The subject line of the email.
-        content (str): The main body text of the email.
     """
+    if not check_email_config():
+        print("Email not sent: Configuration missing.")
+        return
+
     msg = EmailMessage()
     msg["From"] = sender_email
     msg["To"] = receiver_email
     msg["Subject"] = subject
     msg.set_content(content)
 
-    # Send email
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(sender_email, app_password)
-        server.send_message(msg)
-
-    print("Email sent successfully!")
+    try:
+        # Send email
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, app_password)
+            server.send_message(msg)
+        print("Email sent successfully!")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
 if __name__ == "__main__":
     send_email(receiver_email="srimanyuacharya@gmail.com",subject="Test Email from Python",content="Hello! This email was sent using Python.")

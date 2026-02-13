@@ -11,3 +11,5 @@ class UserRepo:
         return user
     def get_user_by_email(self,email:str):
         return self.db.query(User).filter(User.email==email).first()
+    def get_user_by_name(self,name:str):
+        return self.db.query(User).filter(User.name==name).first()
